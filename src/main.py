@@ -39,7 +39,7 @@ db = firestore.client()
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Confluence configuration
-CONFLUENCE_BASE_URL = 'https://commercetools.atlassian.net/wiki'
+CONFLUENCE_BASE_URL = 'https://example.atlassian.net/wiki'
 CONFLUENCE_USERNAME = ''
 CONFLUENCE_API_TOKEN = ''
 
