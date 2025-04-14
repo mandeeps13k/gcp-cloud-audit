@@ -1,0 +1,70 @@
+name: Execute GCP Script
+
+on:
+  workflow_dispatch:
+    inputs:
+      confluence_page_url:
+        description: "Confluence page URL"
+        required: true
+      owner:
+        description: "Owner name"
+        required: true
+      team:
+        description: "Team name"
+        required: true
+      current_date:
+        description: "Current date (YYYY-MM-DD)"
+        required: true
+      project_ids:
+        description: "Comma-separated list of GCP project IDs"
+        required: true
+
+jobs:
+  execute-script:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Step 1: Checkout the repository
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    # Step 2: Set up Python
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.9"
+
+    # Step 3: Install dependencies
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r src/requirements.txt
+
+    # Step 4: Authenticate with GCP using google-github-actions/auth
+    - name: Authenticate with GCP
+      uses: google-github-actions/auth@v1
+      with:
+        credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+
+    # Step 5: Set GCP project configuration
+    - name: Set GCP Project
+      run: |
+        gcloud config set project ctp-gcp-security
+
+    # Step 6: Execute the Python script
+        # Debugging step: List files
+    - name: List files for debugging
+      run: ls -R
+    
+        # Step 6: Execute the Python script
+    - name: Execute Python script
+      env:
+        GOOGLE_APPLICATION_CREDENTIALS_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+        FIREBASE_CREDENTIALS_JSON: ${{ secrets.FIREBASE_CREDENTIALS_JSON }}
+      run: |
+        python src/main.py \
+          "${{ github.event.inputs.confluence_page_url }}" \
+          "${{ github.event.inputs.owner }}" \
+          "${{ github.event.inputs.team }}" \
+          "${{ github.event.inputs.current_date }}" \
+          $(echo "${{ github.event.inputs.project_ids }}" | tr ',' ' ')
