@@ -12,6 +12,7 @@ from firebase_admin import credentials, firestore, initialize_app
 import json
 from google.oauth2 import service_account
 import os
+from html import escape
  
 
 
@@ -68,8 +69,9 @@ def list_terminated_vms(project_id):
     logging.debug(f"Listing terminated VMs for project {project_id}")
     output = []
     # Format for category column with colored status label showing project ID
+    escaped_project_id = escape(project_id)
     def formatted_category(name):
-        return f"{name} <ac:structured-macro ac:name='status'><ac:parameter ac:name='title'>{project_id}</ac:parameter><ac:parameter ac:name='color'>Red</ac:parameter></ac:structured-macro>"
+        return f"{name} <ac:structured-macro ac:name='status'><ac:parameter ac:name='title'>{escaped_project_id}</ac:parameter><ac:parameter ac:name='color'>Red</ac:parameter></ac:structured-macro>"
 
     if project_id.startswith("sys"):
         output.append([formatted_category("Terminated VMs"), "Skipping checks for system project", "N/A"])
@@ -123,8 +125,9 @@ def list_terminated_vms(project_id):
 def list_unused_disks(project_id):
     logging.debug(f"Listing unused disks for project {project_id}")
     output = []
+    escaped_project_id = escape(project_id)
     def formatted_category(name):
-        return f"{name} <ac:structured-macro ac:name='status'><ac:parameter ac:name='title'>{project_id}</ac:parameter><ac:parameter ac:name='color'>Red</ac:parameter></ac:structured-macro>"
+        return f"{name} <ac:structured-macro ac:name='status'><ac:parameter ac:name='title'>{escaped_project_id}</ac:parameter><ac:parameter ac:name='color'>Red</ac:parameter></ac:structured-macro>"
 
     if project_id.startswith("sys"):
         output.append([formatted_category("Unused Disks"), "Skipping checks for system project", "N/A"])
@@ -175,8 +178,9 @@ def list_unused_disks(project_id):
 def list_unused_static_ips(project_id):
     logging.debug(f"Listing unused static IPs for project {project_id}")
     output = []
+    escaped_project_id = escape(project_id)
     def formatted_category(name):
-        return f"{name} <ac:structured-macro ac:name='status'><ac:parameter ac:name='title'>{project_id}</ac:parameter><ac:parameter ac:name='color'>Red</ac:structured-macro>"
+        return f"{name} <ac:structured-macro ac:name='status'><ac:parameter ac:name='title'>{escaped_project_id}</ac:parameter><ac:parameter ac:name='color'>Red</ac:structured-macro>"
 
     if project_id.startswith("sys"):
         output.append([formatted_category("Unused Static IPs"), "Skipping checks for system project", "N/A"])
@@ -226,8 +230,9 @@ def check_bucket(bucket, thirty_days_ago, storage_service, project_id):
     logging.debug(f"Checking bucket {bucket['name']} for project {project_id}")
     output = []
     bucket_name = bucket['name']
+    escaped_project_id = escape(project_id)
     def formatted_category(name):
-        return f"{name} <ac:structured-macro ac:name='status'><ac:parameter ac:name='title'>{project_id}</ac:parameter><ac:parameter ac:name='color'>Red</ac:parameter></ac:structured-macro>"
+        return f"{name} <ac:structured-macro ac:name='status'><ac:parameter ac:name='title'>{escaped_project_id}</ac:parameter><ac:parameter ac:name='color'>Red</ac:parameter></ac:structured-macro>"
 
     try:
         request = storage_service.objects().list(bucket=bucket_name)
@@ -271,8 +276,9 @@ def check_bucket(bucket, thirty_days_ago, storage_service, project_id):
 def list_unused_storage_buckets(project_id):
     logging.debug(f"Listing unused storage buckets for project {project_id}")
     output = []
+    escaped_project_id = escape(project_id)
     def formatted_category(name):
-        return f"{name} <ac:structured-macro ac:name='status'><ac:parameter ac:name='title'>{project_id}</ac:parameter><ac:parameter ac:name='color'>Red</ac:parameter></ac:structured-macro>"
+        return f"{name} <ac:structured-macro ac:name='status'><ac:parameter ac:name='title'>{escaped_project_id}</ac:parameter><ac:parameter ac:name='color'>Red</ac:parameter></ac:structured-macro>"
 
     if project_id.startswith("sys"):
         output.append([formatted_category("Unused Storage Buckets"), "Skipping checks for system project", "N/A"])
@@ -381,8 +387,9 @@ def generate_confluence_table(headers, rows):
 def list_unused_backend_services(project_id):
     logging.debug(f"Listing unused backend services for project {project_id}")
     output = []
+    escaped_project_id = escape(project_id)
     def formatted_category(name):
-        return f"{name} <ac:structured-macro ac:name='status'><ac:parameter ac:name='title'>{project_id}</ac:parameter><ac:parameter ac:name='color'>Red</ac:parameter></ac:structured-macro>"
+        return f"{name} <ac:structured-macro ac:name='status'><ac:parameter ac:name='title'>{escaped_project_id}</ac:parameter><ac:parameter ac:name='color'>Red</ac:parameter></ac:structured-macro>"
 
     if project_id.startswith("sys"):
         output.append([formatted_category("Unused Backend Services"), "Skipping checks for system project", "N/A"])
@@ -429,10 +436,11 @@ def list_unused_backend_services(project_id):
 
 def process_project(project_id, owner_name):
     logging.debug(f"Processing project {project_id}")
+    escaped_project_id = escape(project_id)
     if project_id.startswith("sys"):
         logging.debug(f"Skipping checks for system project: {project_id}")
         return (
-            f"<tr><td><h2>Project: <code>{project_id}</code></h2>"
+            f"<tr><td><h2>Project: <code>{escaped_project_id}</code></h2>"
             "Skipping checks for system project</td></tr>"
         )
 
@@ -496,7 +504,7 @@ def process_project(project_id, owner_name):
    # except Exception as e:
    #     logging.error(f"Error pushing findings to Firebase for project {project_id} under owner {owner_name}: {e}")
 
-    return f"<tr><td><h2>Project: <code>{project_id}</code></h2>{project_table}</td></tr>"
+    return f"<tr><td><h2>Project: <code>{escaped_project_id}</code></h2>{project_table}</td></tr>"
 # ...existing code...
 
 def generate_summary_table(owner, team, current_date, total_savings):
@@ -510,9 +518,9 @@ def generate_summary_table(owner, team, current_date, total_savings):
         f'<th style="padding: 8px; background-color: #f2f2f2;">Total Estimated Monthly Cost Savings</th>'
         f'</tr></thead>'
         f'<tbody><tr>'
-        f'<td style="padding: 8px;">{owner}</td>'
-        f'<td style="padding: 8px;">{team}</td>'
-        f'<td style="padding: 8px;">{current_date}</td>'
+        f'<td style="padding: 8px;">{escape(owner)}</td>'
+        f'<td style="padding: 8px;">{escape(team)}</td>'
+        f'<td style="padding: 8px;">{escape(current_date)}</td>'
         f'<td style="padding: 8px;"><strong>${total_savings:.2f}</strong></td>'
         f'</tr></tbody></table>'
     )
